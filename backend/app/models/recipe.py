@@ -1,21 +1,18 @@
-from sqlalchemy import ForeignKey, Integer, UniqueConstraint, Float
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, Integer, Numeric, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Base
+from app.db.base import Base
 
 
 class Recipe(Base):
-    __tablename__ = "recipe"
+    __tablename__ = "recipes"
     __table_args__ = (
-        UniqueConstraint("product_id", "ingredient_id", name="uq_recipe_product_ingredient"),
+        UniqueConstraint("product_id", "ingredient_id", name="uq_recipes_product_ingredient"),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    product_id: Mapped[int] = mapped_column(ForeignKey("product.id", ondelete="CASCADE"), nullable=False)
-    ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredient.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False)
+    ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredients.id"), nullable=False)
 
-    qty: Mapped[float] = mapped_column(Float, nullable=False)
-
-    product: Mapped["Product"] = relationship(back_populates="recipe_rows")
-    ingredient: Mapped["Ingredient"] = relationship(back_populates="recipe_rows")
+    qty: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)

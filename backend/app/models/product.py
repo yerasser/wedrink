@@ -1,16 +1,12 @@
-from typing import List
+from sqlalchemy import Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.core.db import Base
+from app.db.base import Base
 
 
 class Product(Base):
-    __tablename__ = "product"
+    __tablename__ = "products"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-
-    recipe_rows: Mapped[List["Recipe"]] = relationship(back_populates="product")
-    receipt_items: Mapped[List["ReceiptItem"]] = relationship(back_populates="product")
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    name: Mapped[str | None] = mapped_column(Text, nullable=True)

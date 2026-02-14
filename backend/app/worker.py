@@ -1,11 +1,14 @@
-import os
-from arq.connections import RedisSettings
+from celery import Celery
+from app.core.config import settings
 
-from app.ocr.jobs import ocr_parse_job
+celery_app = Celery(
+    "wedrink",
+    broker=settings.REDIS_URL,
+    backend=settings.REDIS_URL,
+    include=["app.tasks.ocr_tasks"]
+)
 
-class WorkerSettings:
-    functions = [ocr_parse_job]
-    redis_settings = RedisSettings(
-        host=os.getenv("REDIS_HOST", "localhost"),
-        port=int(os.getenv("REDIS_PORT", "6379")),
-    )
+celery_app.conf.task_routes = {
+    "app.tasks.ocr_tasks.ocr_process_receipt": {"queue": "ocr"},
+}
+celery_app.conf.task_default_queue = "default"

@@ -1,23 +1,22 @@
-from datetime import datetime
-from typing import List
+from sqlalchemy import Enum, ForeignKey, Integer, Text, TIMESTAMP, Index, func
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlalchemy import DateTime, Integer, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.core.db import Base
-
+from app.db.base import Base
+from app.models.enums import ReceiptStatus
 
 class Receipt(Base):
-    __tablename__ = "receipt"
+    __tablename__ = "receipts"
+    __table_args__ = (Index("ix_receipts_user_id_created_at", "user_id", "created_at"),)
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
 
-    items: Mapped[List["ReceiptItem"]] = relationship(
-        back_populates="receipt",
-        cascade="all, delete-orphan",
-    )
+    status: Mapped[ReceiptStatus] = mapped_column(Enum(ReceiptStatus, name="receipt_status"), nullable=False)
+
+    raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ocr_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    ocr_started_at: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
+    ocr_finished_at: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
+
+    created_at: Mapped[str] = mapped_column(TIMESTAMP, nullable=False, server_default=func.now())

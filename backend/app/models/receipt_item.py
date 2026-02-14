@@ -1,21 +1,32 @@
-from sqlalchemy import ForeignKey, Integer, Numeric, Float, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, Text, TIMESTAMP, Index, func
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Base
+from app.db.base import Base
 
 
 class ReceiptItem(Base):
-    __tablename__ = "receipt_item"
+    __tablename__ = "receipt_items"
     __table_args__ = (
-        UniqueConstraint("receipt_id", "product_id", name="uq_receiptitem_receipt_product"),
+        Index("ix_receipt_items_receipt_id", "receipt_id"),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    receipt_id: Mapped[int] = mapped_column(ForeignKey("receipt.id", ondelete="CASCADE"), nullable=False)
-    product_id: Mapped[int] = mapped_column(ForeignKey("product.id", ondelete="RESTRICT"), nullable=False)
+    receipt_id: Mapped[int] = mapped_column(ForeignKey("receipts.id"), nullable=False)
 
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    product_code_raw: Mapped[str] = mapped_column(Text, nullable=False)
 
-    receipt: Mapped["Receipt"] = relationship(back_populates="items")
-    product: Mapped["Product"] = relationship(back_populates="receipt_items")
+    qty: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+
+    unit_price: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    line_total: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+
+    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id"), nullable=True)
+
+    is_deleted: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+
+    updated_at: Mapped[str] = mapped_column(
+        TIMESTAMP,
+        nullable=False,
+        server_default=func.now(),
+    )
